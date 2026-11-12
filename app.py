@@ -41,7 +41,6 @@ h1, h2, h3, p, label {
 """, unsafe_allow_html=True)
 
 # ---------------- LOAD MODEL ----------------
-@st.cache_resource
 def load_files():
     model = joblib.load("bbc_news_model.pkl")
     vectorizer = joblib.load("bbc_news_vectorizer.pkl")
