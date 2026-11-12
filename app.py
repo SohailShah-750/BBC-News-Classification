@@ -131,6 +131,69 @@ if page == "Overview":
 
     st.info("Select AI News Classifier from the sidebar to get started.")
 
+
+# ---------------- AI NEWS CLASSIFIER PAGE ----------------
+
+elif page == "AI News Classifier":
+
+    st.title("🧠 AI News Classifier")
+    st.markdown("Analyze any news article using our trained AI model.")
+
+    st.divider()
+
+    st.subheader("📝 News Article Input")
+
+    news_text = st.text_area(
+        "Paste your news article",
+        height=250,
+        placeholder="Paste the complete news article here..."
+    )
+
+    if st.button("🚀 Analyze News", use_container_width=True):
+
+        if news_text.strip():
+
+            try:
+                text_vector = vectorizer.transform([news_text])
+
+                prediction = model.predict(text_vector)[0]
+
+                probabilities = model.predict_proba(text_vector)[0]
+                confidence = max(probabilities) * 100
+
+                st.success("News Analysis Completed!")
+
+                col1, col2 = st.columns(2)
+
+                with col1:
+                    st.metric("Predicted Category", prediction)
+
+                with col2:
+                    st.metric("Confidence Score", f"{confidence:.2f}%")
+
+                probability_df = pd.DataFrame({
+                    "Category": model.classes_,
+                    "Probability": probabilities * 100
+                })
+
+                probability_df = probability_df.sort_values(
+                    by="Probability",
+                    ascending=False
+                )
+
+                st.subheader("📊 Category Probability Analysis")
+
+                st.bar_chart(
+                    probability_df.set_index("Category")
+                )
+
+            except Exception as e:
+                st.error(f"Prediction Error: {e}")
+
+        else:
+            st.warning("Please enter a news article first.")
+
+
 # ---------------- DASHBOARD ----------------
 col1, col2 = st.columns(2)
 
