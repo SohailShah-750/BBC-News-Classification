@@ -76,6 +76,7 @@ news_text = st.text_area(
     placeholder="Paste news headline or article content here..."
 )
 
+
 if st.button("🚀 Analyze News", use_container_width=True):
 
     if news_text.strip():
@@ -83,7 +84,6 @@ if st.button("🚀 Analyze News", use_container_width=True):
         text_vector = vectorizer.transform([news_text])
         prediction = model.predict(text_vector)[0]
         probabilities = model.predict_proba(text_vector)[0]
-
         confidence = max(probabilities) * 100
 
         st.markdown("---")
@@ -98,7 +98,6 @@ if st.button("🚀 Analyze News", use_container_width=True):
         )
 
         st.metric("Prediction Confidence", f"{confidence:.2f}%")
-
         st.progress(float(confidence / 100))
 
         st.subheader("📊 Category Probabilities")
@@ -108,18 +107,10 @@ if st.button("🚀 Analyze News", use_container_width=True):
             "Probability": probabilities
         })
 
-        st.bar_chart(
-            chart_data.set_index("Category")
-        )
+        st.bar_chart(chart_data.set_index("Category"))
 
     else:
         st.warning("Please enter a news article.")
 
 st.markdown("---")
 st.caption("Powered by Multinomial Naive Bayes + CountVectorizer")
-
-        st.success(f"Predicted Category: {prediction.title()}")
-        st.metric("Prediction Confidence", f"{confidence:.2f}%")
-    else:
-        st.warning("Please enter a news article first.")
-
