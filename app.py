@@ -233,6 +233,13 @@ if st.button("🚀 Analyze News", use_container_width=True):
             probabilities = model.predict_proba(text_vector)[0]
             confidence = max(probabilities) * 100
 
+            st.session_state.prediction_history.append({
+    "Date & Time": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+    "News": news_text[:100],
+    "Category": prediction,
+    "Confidence": round(confidence, 2)
+})
+
             st.success("News Analysis Completed!")
 
             st.subheader("🎯 Prediction Result")
