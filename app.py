@@ -275,6 +275,12 @@ if st.button("🚀 Analyze News", use_container_width=True):
     else:
         st.warning("Please enter a news article first.")
 
+# -------------- PREDICTION HISTORY PAGE ----------------
+
+elif page == "Prediction History":
+
+    # History code yahan paste hoga
+
 # ---------------- FOOTER ----------------
 st.divider()
 st.caption("Built with Python, Scikit-learn, Naive Bayes & Streamlit")
