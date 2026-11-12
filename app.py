@@ -48,6 +48,38 @@ def load_files():
 
 model, vectorizer = load_files()
 
+# ---------------- SIDEBAR NAVIGATION ----------------
+
+with st.sidebar:
+    st.title("📰 BBC INTELLIGENCE")
+    st.caption("AI-Powered News Platform")
+
+    st.divider()
+
+    page = st.radio(
+        "MAIN MENU",
+        [
+            "Overview",
+            "AI News Classifier",
+            "Prediction History",
+            "Analytics",
+            "About"
+        ]
+    )
+
+    st.divider()
+
+    st.caption("POWERED BY")
+    st.markdown("🤖 Multinomial Naive Bayes")
+    st.markdown("⚡ Scikit-learn")
+    st.markdown("🎨 Streamlit")
+
+    st.divider()
+
+    st.caption("Version 1.0.0")
+    st.caption("© BBC News AI")
+
+
 
 # ---------------- HEADER ----------------
 st.title("📰 BBC News AI Classifier")
