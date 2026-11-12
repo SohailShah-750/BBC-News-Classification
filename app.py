@@ -3,6 +3,12 @@ import streamlit as st
 import joblib
 import pandas as pd
 
+from datetime import datetime
+
+# Initialize prediction history
+if "prediction_history" not in st.session_state:
+    st.session_state.prediction_history = []
+
 # ---------------- PAGE CONFIG ----------------
 st.set_page_config(
     page_title="BBC News AI",
