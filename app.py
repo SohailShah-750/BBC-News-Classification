@@ -48,13 +48,6 @@ def load_files():
 
 model, vectorizer = load_files()
 
-# ---------------- DEBUG INFORMATION ----------------
-st.write("Model features:", model.n_features_in_)
-st.write("Vectorizer features:", len(vectorizer.get_feature_names_out()))
-st.write(
-    "Input features:",
-    vectorizer.transform(["test news article"]).shape[1]
-)
 
 # ---------------- HEADER ----------------
 st.title("📰 BBC News AI Classifier")
