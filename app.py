@@ -279,7 +279,35 @@ if st.button("🚀 Analyze News", use_container_width=True):
 
 elif page == "Prediction History":
 
-    # History code yahan paste hoga
+    st.title("📚 Prediction History")
+    st.write("Review your previous AI news predictions.")
+
+    st.divider()
+
+    history = st.session_state.prediction_history
+
+    if history:
+        history_df = pd.DataFrame(history)
+
+        st.metric("Total Predictions", len(history_df))
+
+        st.dataframe(
+            history_df,
+            use_container_width=True,
+            hide_index=True
+        )
+
+        csv = history_df.to_csv(index=False).encode("utf-8")
+
+        st.download_button(
+            "📥 Download History CSV",
+            data=csv,
+            file_name="bbc_prediction_history.csv",
+            mime="text/csv"
+        )
+
+    else:
+        st.info("No prediction history available yet. Analyze a news article first.")
 
 # ---------------- FOOTER ----------------
 st.divider()
