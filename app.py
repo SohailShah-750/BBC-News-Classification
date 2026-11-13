@@ -307,41 +307,65 @@ elif page == "CSV Upload":
 
     if uploaded_file is not None:
 
-        df = pd.read_csv(uploaded_file)
+        try:
+            df = pd.read_csv(uploaded_file)
 
-        df["text"] = (
-            df["title"].fillna("") + " " +
-            df["content"].fillna("")
-        )
+            # Combine title and content
+            required_columns = ["title", "content"]
 
-        st.subheader("📋 Uploaded Data")
-        st.dataframe(df.head(), use_container_width=True)
+            if not all(col in df.columns for col in required_columns):
+                st.error("CSV must contain 'title' and 'content' columns.")
 
-        if st.button("🚀 Classify All News"):
+            else:
+                df["text"] = (
+                    df["title"].fillna("").astype(str) + " " +
+                    df["content"].fillna("").astype(str)
+                )
 
-            text_vector = vectorizer.transform(df["text"])
+                st.subheader("📋 Uploaded Data")
+                st.dataframe(
+                    df.head(),
+                    use_container_width=True
+                )
 
-            predictions = model.predict(text_vector)
+                st.metric("Total News Articles", len(df))
 
-            probabilities = model.predict_proba(text_vector)
+                if st.button("🚀 Classify All News"):
 
-            df["Predicted Category"] = predictions
+                    text_vector = vectorizer.transform(df["text"])
 
-            df["Confidence"] = (
-                probabilities.max(axis=1) * 100
-            ).round(2)
+                    predictions = model.predict(text_vector)
 
-            st.success("All news articles classified successfully!")
+                    probabilities = model.predict_proba(text_vector)
 
-            st.dataframe(df, use_container_width=True)
-                        csv = df.to_csv(index=False).encode("utf-8")
+                    df["Predicted Category"] = predictions
 
-            st.download_button(
-                label="📥 Download Classified CSV",
-                data=csv,
-                file_name="bbc_classified_news.csv",
-                mime="text/csv"
-            )
+                    df["Confidence"] = (
+                        probabilities.max(axis=1) * 100
+                    ).round(2)
+
+                    st.success(
+                        "All news articles classified successfully!"
+                    )
+
+                    st.subheader("📊 Classification Results")
+
+                    st.dataframe(
+                        df,
+                        use_container_width=True
+                    )
+
+                    csv = df.to_csv(index=False).encode("utf-8")
+
+                    st.download_button(
+                        label="📥 Download Classified CSV",
+                        data=csv,
+                        file_name="bbc_classified_news.csv",
+                        mime="text/csv"
+                    )
+
+        except Exception as e:
+            st.error(f"CSV Processing Error: {e}")
 
 # ---------------- FOOTER ----------------
 st.divider()
