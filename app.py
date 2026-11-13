@@ -76,10 +76,6 @@ with st.sidebar:
 if page == "Overview":
 
     st.title("📰 BBC News Intelligence")
-    st.markdown(
-        "### Welcome to your AI-powered News Intelligence Platform"
-    )
-
     st.write(
         "Classify news articles into categories using Machine Learning."
     )
@@ -95,7 +91,7 @@ if page == "Overview":
         st.metric("Text Processing", "CountVectorizer")
 
     with col3:
-        st.metric("Model Features", f"{model.n_features_in_}")
+        st.metric("Model Features", "5,000")
 
     st.divider()
 
@@ -104,21 +100,12 @@ if page == "Overview":
     c1, c2 = st.columns(2)
 
     with c1:
-        st.markdown("### 🧠 AI News Classification")
-        st.write("Predict the category of any news article.")
-
-        st.markdown("### 📊 Smart Analytics")
-        st.write("Explore prediction confidence and category insights.")
+        st.info("📰 AI News Classification")
+        st.info("📂 Bulk CSV News Classification")
 
     with c2:
-        st.markdown("### 📚 Prediction History")
-        st.write("Keep track of previous news predictions.")
-
-        st.markdown("### 📥 Export Reports")
-        st.write("Download prediction records for further analysis.")
-
-    st.info("Select AI News Classifier from the sidebar to get started.")
-
+        st.info("📊 Prediction History")
+        st.info("📈 Analytics Dashboard")
 
 # ---------------- AI NEWS CLASSIFIER PAGE ----------------
 
