@@ -289,6 +289,9 @@ elif page == "Prediction History":
 
 # ---------------- CSV UPLOAD PAGE ----------------
 
+
+
+
 elif page == "CSV Upload":
 
     st.title("📂 Bulk News Classification")
@@ -304,63 +307,88 @@ elif page == "CSV Upload":
         try:
             df = pd.read_csv(uploaded_file)
 
-            # Combine title and content
-            required_columns = ["title", "content"]
+            # Support BBC dataset and custom dataset
 
-            if not all(col in df.columns for col in required_columns):
-                st.error("CSV must contain 'title' and 'content' columns.")
+            if "text" in df.columns:
 
-            else:
+                df["text"] = df["text"].fillna("").astype(str)
+
+            elif "title" in df.columns and "content" in df.columns:
+
                 df["text"] = (
                     df["title"].fillna("").astype(str) + " " +
                     df["content"].fillna("").astype(str)
                 )
 
-                st.subheader("📋 Uploaded Data")
+            else:
+                st.error(
+                    "CSV must contain 'text' OR both 'title' and 'content' columns."
+                )
+                st.stop()
+
+            st.subheader("📋 Uploaded Data")
+
+            st.dataframe(
+                df.head(),
+                use_container_width=True
+            )
+
+            st.metric("Total News Articles", len(df))
+
+            if st.button("🚀 Classify All News"):
+
+                text_vector = vectorizer.transform(df["text"])
+
+                predictions = model.predict(text_vector)
+
+                probabilities = model.predict_proba(text_vector)
+
+                df["Predicted Category"] = predictions
+
+                df["Confidence"] = (
+                    probabilities.max(axis=1) * 100
+                ).round(2)
+
+                st.success(
+                    "All news articles classified successfully!"
+                )
+
+                st.subheader("📊 Classification Results")
+
                 st.dataframe(
-                    df.head(),
+                    df,
                     use_container_width=True
                 )
 
-                st.metric("Total News Articles", len(df))
+                # Show prediction probabilities
 
-                if st.button("🚀 Classify All News"):
+                st.subheader("📈 Category Probabilities")
 
-                    text_vector = vectorizer.transform(df["text"])
+                probability_df = pd.DataFrame(
+                    probabilities,
+                    columns=model.classes_
+                )
 
-                    predictions = model.predict(text_vector)
+                st.dataframe(
+                    probability_df.round(3),
+                    use_container_width=True
+                )
 
-                    probabilities = model.predict_proba(text_vector)
+                # Download results
 
-                    df["Predicted Category"] = predictions
+                csv = df.to_csv(index=False).encode("utf-8")
 
-                    df["Confidence"] = (
-                        probabilities.max(axis=1) * 100
-                    ).round(2)
-
-                    st.success(
-                        "All news articles classified successfully!"
-                    )
-
-                    st.subheader("📊 Classification Results")
-
-                    st.dataframe(
-                        df,
-                        use_container_width=True
-                    )
-
-                    csv = df.to_csv(index=False).encode("utf-8")
-
-                    st.download_button(
-                        label="📥 Download Classified CSV",
-                        data=csv,
-                        file_name="bbc_classified_news.csv",
-                        mime="text/csv"
-                    )
+                st.download_button(
+                    label="📥 Download Classified CSV",
+                    data=csv,
+                    file_name="bbc_classified_news.csv",
+                    mime="text/csv"
+                )
 
         except Exception as e:
             st.error(f"CSV Processing Error: {e}")
 
+         
 # ---------------- FOOTER ----------------
 st.divider()
 st.caption("Built with Python, Scikit-learn, Naive Bayes & Streamlit")
