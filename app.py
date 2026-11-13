@@ -47,14 +47,10 @@ h1, h2, h3, p, label {
 """, unsafe_allow_html=True)
 
 # ---------------- LOAD MODEL ----------------
-def load_files():
-    model = joblib.load("bbc_news_model.pkl")
-    vectorizer = joblib.load("bbc_news_vectorizer.pkl")
-    return model, vectorizer
+# ---------------- SIDEBAR NAVIGATION ----------------
 
-model, vectorizer = load_files()
+with st.sidebar:
 
-# -----------with st.sidebar:
     st.title("📰 BBC INTELLIGENCE")
     st.caption("AI-Powered News Platform")
 
@@ -71,18 +67,6 @@ model, vectorizer = load_files()
             "About"
         ]
     )
-    st.divider()
-
-    st.caption("POWERED BY")
-    st.markdown("🤖 Multinomial Naive Bayes")
-    st.markdown("⚡ Scikit-learn")
-    st.markdown("🎨 Streamlit")
-
-    st.divider()
-
-    st.caption("Version 1.0.0")
-    st.caption("© BBC News AI")
-
 
 
 # ---------------- HEADER ----------------
