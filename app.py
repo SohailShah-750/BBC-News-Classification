@@ -54,9 +54,7 @@ def load_files():
 
 model, vectorizer = load_files()
 
-# ---------------- SIDEBAR NAVIGATION ----------------
-
-with st.sidebar:
+# -----------with st.sidebar:
     st.title("📰 BBC INTELLIGENCE")
     st.caption("AI-Powered News Platform")
 
@@ -67,12 +65,12 @@ with st.sidebar:
         [
             "Overview",
             "AI News Classifier",
+            "CSV Upload",
             "Prediction History",
             "Analytics",
             "About"
         ]
     )
-
     st.divider()
 
     st.caption("POWERED BY")
@@ -308,6 +306,58 @@ elif page == "Prediction History":
 
     else:
         st.info("No prediction history available yet. Analyze a news article first.")
+
+   
+
+# ---------------- CSV UPLOAD PAGE ----------------
+
+elif page == "CSV Upload":
+
+    st.title("📂 Bulk News Classification")
+    st.write("Upload a CSV file to classify multiple news articles.")
+
+    uploaded_file = st.file_uploader(
+        "Upload CSV File",
+        type=["csv"]
+    )
+
+    if uploaded_file is not None:
+
+        df = pd.read_csv(uploaded_file)
+
+        df["text"] = (
+            df["title"].fillna("") + " " +
+            df["content"].fillna("")
+        )
+
+        st.subheader("📋 Uploaded Data")
+        st.dataframe(df.head(), use_container_width=True)
+
+        if st.button("🚀 Classify All News"):
+
+            text_vector = vectorizer.transform(df["text"])
+
+            predictions = model.predict(text_vector)
+
+            probabilities = model.predict_proba(text_vector)
+
+            df["Predicted Category"] = predictions
+
+            df["Confidence"] = (
+                probabilities.max(axis=1) * 100
+            ).round(2)
+
+            st.success("All news articles classified successfully!")
+
+            st.dataframe(df, use_container_width=True)
+                        csv = df.to_csv(index=False).encode("utf-8")
+
+            st.download_button(
+                label="📥 Download Classified CSV",
+                data=csv,
+                file_name="bbc_classified_news.csv",
+                mime="text/csv"
+            )
 
 # ---------------- FOOTER ----------------
 st.divider()
