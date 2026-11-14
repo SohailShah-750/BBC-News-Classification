@@ -345,6 +345,23 @@ elif page == "CSV Upload":
 
                 df["Predicted Category"] = predictions
 
+                
+# Compare actual category with predicted category
+
+if "category" in df.columns:
+
+    actual = df["category"].astype(str).str.strip().str.lower()
+
+    predicted = pd.Series(predictions).astype(str).str.strip().str.lower()
+
+    accuracy = (actual == predicted).mean() * 100
+
+    st.metric(
+        "🎯 Model Accuracy",
+        f"{accuracy:.2f}%"
+    )
+
+
                 df["Confidence"] = (
                     probabilities.max(axis=1) * 100
                 ).round(2)
