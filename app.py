@@ -224,54 +224,51 @@ if st.button("🚀 Analyze News"):
         st.warning("Please enter a news article first.")
                
 
-                       # Calculate Accuracy
-                       if "category" in df.columns:
+                # Calculate Accuracy
 
-                actual = (
-                    df["category"]
-                    .astype(str)
-                    .str.strip()
-                    .str.lower()
+                if "category" in df.columns:
+
+                    actual = (
+                        df["category"]
+                        .astype(str)
+                        .str.strip()
+                        .str.lower()
+                    )
+
+                    predicted = (
+                        pd.Series(predictions)
+                        .astype(str)
+                        .str.strip()
+                        .str.lower()
+                    )
+
+                    accuracy = (actual == predicted).mean() * 100
+
+                    st.metric(
+                        "🎯 Model Accuracy",
+                        f"{accuracy:.2f}%"
+                    )
+
+                # Probability Chart
+
+                categories = model.classes_
+
+                probability_df = pd.DataFrame({
+                    "Category": categories,
+                    "Probability": probabilities[0] * 100
+                })
+
+                probability_df = probability_df.sort_values(
+                    by="Probability",
+                    ascending=False
                 )
 
-                predicted = (
-                    pd.Series(predictions)
-                    .astype(str)
-                    .str.strip()
-                    .str.lower()
+                st.subheader("📊 Category Probabilities")
+
+                st.bar_chart(
+                    probability_df.set_index("Category")
                 )
 
-                accuracy = (actual == predicted).mean() * 100
-
-                st.metric(
-                    "🎯 Model Accuracy",
-                    f"{accuracy:.2f}%"
-                )
-
-            # Probability Chart
-            categories = model.classes_
-
-            probability_df = pd.DataFrame({
-                "Category": categories,
-                "Probability": probabilities[0] * 100
-            })
-
-            probability_df = probability_df.sort_values(
-                by="Probability",
-                ascending=False
-            )
-
-            st.subheader("📊 Category Probabilities")
-
-            st.bar_chart(
-                probability_df.set_index("Category")
-            )
-
-        except Exception as e:
-            st.error(f"Prediction Error: {e}")
-
-    else:
-        st.warning("Please enter a news article first.")
 # -------------- PREDICTION HISTORY PAGE ----------------
 
 elif page == "Prediction History":
