@@ -222,7 +222,9 @@ if st.button("🚀 Analyze News"):
 
     else:
         st.warning("Please enter a news article first.")
-                # Calculate Accuracy
+               
+
+                           # Calculate Accuracy
 
                 if "category" in df.columns:
 
@@ -240,7 +242,9 @@ if st.button("🚀 Analyze News"):
                         .str.lower()
                     )
 
-                    accuracy = (actual == predicted).mean() * 100
+                    accuracy = (
+                        actual == predicted
+                    ).mean() * 100
 
                     st.metric(
                         "🎯 Model Accuracy",
