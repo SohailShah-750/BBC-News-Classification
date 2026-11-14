@@ -1,20 +1,19 @@
-
 import streamlit as st
 import joblib
 import pandas as pd
 
 from datetime import datetime
 
-# Initialize prediction history
-if "prediction_history" not in st.session_state:
-    st.session_state.prediction_history = []
-
-# ---------------- PAGE CONFIG ----------------
+# ---------------- PAGE CONFIG (sabse pehle hona chahiye) ----------------
 st.set_page_config(
     page_title="BBC News AI",
     page_icon="📰",
     layout="wide"
 )
+
+# ---------------- SESSION STATE ----------------
+if "prediction_history" not in st.session_state:
+    st.session_state.prediction_history = []
 
 # ---------------- CUSTOM CSS ----------------
 st.markdown("""
@@ -46,6 +45,7 @@ h1, h2, h3, p, label {
 </style>
 """, unsafe_allow_html=True)
 
+
 # ---------------- LOAD MODEL ----------------
 @st.cache_resource
 def load_files():
@@ -53,11 +53,11 @@ def load_files():
     vectorizer = joblib.load("bbc_news_vectorizer.pkl")
     return model, vectorizer
 
+
 model, vectorizer = load_files()
+
 # ---------------- SIDEBAR NAVIGATION ----------------
-
 with st.sidebar:
-
     st.title("📰 BBC INTELLIGENCE")
     st.caption("AI-Powered News Platform")
 
@@ -75,17 +75,13 @@ with st.sidebar:
         ]
     )
 
-
-# ---------------- HEADER ----------------
-
-# ---------------- OVERVIEW PAGE ----------------
-
+# =====================================================
+# OVERVIEW PAGE
+# =====================================================
 if page == "Overview":
 
     st.title("📰 BBC News Intelligence")
-    st.write(
-        "Classify news articles into categories using Machine Learning."
-    )
+    st.write("Classify news articles into categories using Machine Learning.")
 
     st.divider()
 
@@ -114,25 +110,20 @@ if page == "Overview":
         st.info("📊 Prediction History")
         st.info("📈 Analytics Dashboard")
 
-# ---------------- AI NEWS CLASSIFIER PAGE ----------------
-
-
-# ---------------- AI NEWS CLASSIFIER ----------------
-
+# =====================================================
+# AI NEWS CLASSIFIER PAGE
+# =====================================================
 elif page == "AI News Classifier":
 
     st.title("📰 AI News Classifier")
-
     st.write("Enter a news article to predict its category.")
 
-    # News Input
     news_text = st.text_area(
         "Paste your news article here:",
         height=250,
         placeholder="Enter or paste your news article..."
     )
 
-    # Prediction
     if st.button("🚀 Analyze News"):
 
         if news_text.strip():
@@ -147,10 +138,8 @@ elif page == "AI News Classifier":
                 # Probabilities
                 probabilities = model.predict_proba(text_vector)[0]
 
-                # Display Prediction
                 st.success(f"Predicted Category: {prediction}")
 
-                # Probability DataFrame
                 probability_df = pd.DataFrame({
                     "Category": model.classes_,
                     "Probability": (probabilities * 100).round(2)
@@ -165,12 +154,19 @@ elif page == "AI News Classifier":
 
                 st.dataframe(
                     probability_df,
-                    use_container_width=True
+                    use_container_width=True,
+                    hide_index=True
                 )
 
-                st.bar_chart(
-                    probability_df.set_index("Category")
-                )
+                st.bar_chart(probability_df.set_index("Category"))
+
+                # Save to history
+                st.session_state.prediction_history.append({
+                    "Time": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                    "News Preview": news_text[:100] + ("..." if len(news_text) > 100 else ""),
+                    "Predicted Category": prediction,
+                    "Confidence (%)": round(float(probabilities.max() * 100), 2)
+                })
 
             except Exception as e:
                 st.error(f"Prediction Error: {e}")
@@ -178,91 +174,98 @@ elif page == "AI News Classifier":
         else:
             st.warning("Please enter a news article first.")
 
-# ---------------- DASHBOARD ----------------
-col1, col2 = st.columns(2)
+# =====================================================
+# CSV UPLOAD PAGE
+# =====================================================
+elif page == "CSV Upload":
 
-with col1:
-    st.metric("Algorithm", "Multinomial Naive Bayes")
+    st.title("📂 Bulk News Classification")
+    st.write("Upload a CSV file to classify multiple news articles.")
 
-with col2:
-    st.metric("Vectorizer", "CountVectorizer")
+    uploaded_file = st.file_uploader("Upload CSV File", type=["csv"])
 
-st.divider()
+    if uploaded_file is not None:
 
-# ---------------- NEWS INPUT ----------------
+        try:
+            df = pd.read_csv(uploaded_file)
 
-st.subheader("📄 Enter News Article")
+            # Check CSV columns
+            if "text" in df.columns:
+                df["text"] = df["text"].fillna("").astype(str)
 
-news_text = st.text_area(
-    "Paste your news article here:",
-    height=250,
-    placeholder="Enter or paste your news article..."
-)
+            elif "title" in df.columns and "content" in df.columns:
+                df["text"] = (
+                    df["title"].fillna("").astype(str)
+                    + " "
+                    + df["content"].fillna("").astype(str)
+                )
 
-# ---------------- PREDICTION ----------------
+            else:
+                st.error(
+                    "CSV must contain 'text' OR both 'title' and 'content' columns."
+                )
+                st.stop()
 
-if st.button("🚀 Analyze News"):
+            st.subheader("📋 Uploaded Data")
+            st.dataframe(df.head(), use_container_width=True)
 
-    if news_text.strip():
+            st.metric("Total News Articles", len(df))
 
-        text_vector = vectorizer.transform([news_text])
+            if st.button("🚀 Classify All News", use_container_width=True):
 
-        prediction = model.predict(text_vector)[0]
+                # Vectorization
+                text_vector = vectorizer.transform(df["text"])
 
-        probabilities = model.predict_proba(text_vector)[0]
+                # Predictions + Probabilities
+                predictions = model.predict(text_vector)
+                probabilities = model.predict_proba(text_vector)
 
-        st.success(f"Predicted Category: {prediction}")
+                df["Predicted Category"] = predictions
+                df["Confidence"] = (probabilities.max(axis=1) * 100).round(2)
 
-        st.write("Category Probabilities:")
-
-        probability_df = pd.DataFrame({
-            "Category": model.classes_,
-            "Probability": probabilities
-        })
-
-        st.dataframe(probability_df)
-
-    else:
-        st.warning("Please enter a news article first.")
-               
-
-        
-              # Calculate Accuracy
-  if "category" in df.columns
+                # Accuracy agar actual category column ho
+                if "category" in df.columns:
 
                     actual = df["category"].astype(str).str.strip().str.lower()
-
                     predicted = pd.Series(predictions).astype(str).str.strip().str.lower()
 
-                    accuracy = (actual == predicted).mean() * 100
+                    accuracy = (actual.values == predicted.values).mean() * 100
 
-                    st.metric(
-                        "🎯 Model Accuracy",
-                        f"{accuracy:.2f}%"
-                    )
+                    st.metric("🎯 Model Accuracy", f"{accuracy:.2f}%")
 
-                # Probability Chart
+                st.success("All news articles classified successfully!")
 
-                categories = model.classes_
+                st.subheader("📊 Classification Results")
+                st.dataframe(df, use_container_width=True)
 
-                probability_df = pd.DataFrame({
-                    "Category": categories,
-                    "Probability": probabilities[0] * 100
-                })
+                # Category distribution chart
+                st.subheader("📊 Category Distribution")
+                st.bar_chart(df["Predicted Category"].value_counts())
 
-                probability_df = probability_df.sort_values(
-                    by="Probability",
-                    ascending=False
+                # Probability Table
+                st.subheader("📈 Category Probabilities")
+                probability_df = pd.DataFrame(
+                    probabilities,
+                    columns=model.classes_
+                )
+                st.dataframe(probability_df.round(3), use_container_width=True)
+
+                # Download Results
+                csv = df.to_csv(index=False).encode("utf-8")
+
+                st.download_button(
+                    label="📥 Download Classified CSV",
+                    data=csv,
+                    file_name="bbc_classified_news.csv",
+                    mime="text/csv"
                 )
 
-                st.subheader("📊 Category Probabilities")
+        except Exception as e:
+            st.error(f"CSV Processing Error: {e}")
 
-                st.bar_chart(
-                    probability_df.set_index("Category")
-                )
-
-# -------------- PREDICTION HISTORY PAGE ----------------
-
+# =====================================================
+# PREDICTION HISTORY PAGE
+# =====================================================
 elif page == "Prediction History":
 
     st.title("📚 Prediction History")
@@ -292,173 +295,68 @@ elif page == "Prediction History":
             mime="text/csv"
         )
 
+        if st.button("🗑️ Clear History"):
+            st.session_state.prediction_history = []
+            st.rerun()
+
     else:
         st.info("No prediction history available yet. Analyze a news article first.")
 
+# =====================================================
+# ANALYTICS PAGE
+# =====================================================
+elif page == "Analytics":
 
+    st.title("📈 Analytics Dashboard")
+    st.write("Insights from your predictions in this session.")
 
+    st.divider()
 
+    history = st.session_state.prediction_history
 
-# ---------------- CSV UPLOAD PAGE ----------------
+    if history:
+        history_df = pd.DataFrame(history)
 
-elif page == "CSV Upload":
+        c1, c2 = st.columns(2)
 
-    st.title("📂 Bulk News Classification")
+        with c1:
+            st.metric("Total Predictions", len(history_df))
 
-    st.write(
-        "Upload a CSV file to classify multiple news articles."
-    )
-
-    uploaded_file = st.file_uploader(
-        "Upload CSV File",
-        type=["csv"]
-    )
-
-    if uploaded_file is not None:
-
-        try:
-            # Read CSV File
-            df = pd.read_csv(uploaded_file)
-
-            # Check CSV columns
-            if "text" in df.columns:
-
-                df["text"] = (
-                    df["text"]
-                    .fillna("")
-                    .astype(str)
-                )
-
-            elif "title" in df.columns and "content" in df.columns:
-
-                df["text"] = (
-                    df["title"].fillna("").astype(str)
-                    + " "
-                    + df["content"].fillna("").astype(str)
-                )
-
-            else:
-                st.error(
-                    "CSV must contain 'text' OR both 'title' and 'content' columns."
-                )
-                st.stop()
-
-            # Uploaded Data
-            st.subheader("📋 Uploaded Data")
-
-            st.dataframe(
-                df.head(),
-                use_container_width=True
-            )
-
+        with c2:
             st.metric(
-                "Total News Articles",
-                len(df)
+                "Average Confidence",
+                f"{history_df['Confidence (%)'].mean():.2f}%"
             )
 
-            # Classify All News
-            if st.button(
-                "🚀 Classify All News",
-                use_container_width=True
-            ):
+        st.subheader("📊 Predictions by Category")
+        st.bar_chart(history_df["Predicted Category"].value_counts())
 
-                # Vectorization
-                text_vector = vectorizer.transform(
-                    df["text"]
-                )
+        st.subheader("📉 Confidence Over Time")
+        st.line_chart(history_df["Confidence (%)"])
 
-                # Predictions
-                predictions = model.predict(
-                    text_vector
-                )
+    else:
+        st.info("No data yet. Analyze some news articles first.")
 
-                # Probabilities
-                probabilities = model.predict_proba(
-                    text_vector
-                )
+# =====================================================
+# ABOUT PAGE
+# =====================================================
+elif page == "About":
 
-                # Add Predictions
-                df["Predicted Category"] = predictions
+    st.title("ℹ️ About")
+    st.write(
+        "This app classifies BBC news articles into categories "
+        "using a Multinomial Naive Bayes model with CountVectorizer."
+    )
 
-                # Confidence Score
-                df["Confidence"] = (
-                    probabilities.max(axis=1) * 100
-                ).round(2)
+    st.subheader("🛠️ Tech Stack")
+    st.write("- Python\n- Scikit-learn\n- Streamlit\n- Pandas\n- Joblib")
 
-                # Accuracy if actual category exists
-                if "category" in df.columns:
+    st.subheader("📂 Categories")
+    st.write(", ".join(str(c) for c in model.classes_))
 
-                    actual = (
-                        df["category"]
-                        .astype(str)
-                        .str.strip()
-                        .str.lower()
-                    )
-
-                    predicted = (
-                        pd.Series(predictions)
-                        .astype(str)
-                        .str.strip()
-                        .str.lower()
-                    )
-
-                    accuracy = (
-                        actual == predicted
-                    ).mean() * 100
-
-                    st.metric(
-                        "🎯 Model Accuracy",
-                        f"{accuracy:.2f}%"
-                    )
-
-                # Success Message
-                st.success(
-                    "All news articles classified successfully!"
-                )
-
-                # Results
-                st.subheader("📊 Classification Results")
-
-                st.dataframe(
-                    df,
-                    use_container_width=True
-                )
-
-                # Probability Table
-                st.subheader("📈 Category Probabilities")
-
-                probability_df = pd.DataFrame(
-                    probabilities,
-                    columns=model.classes_
-                )
-
-                st.dataframe(
-                    probability_df.round(3),
-                    use_container_width=True
-                )
-
-                # Download Results
-                csv = df.to_csv(
-                    index=False
-                ).encode("utf-8")
-
-                st.download_button(
-                    label="📥 Download Classified CSV",
-                    data=csv,
-                    file_name="bbc_classified_news.csv",
-                    mime="text/csv"
-                )
-
-        except Exception as e:
-
-            st.error(
-                f"CSV Processing Error: {e}"
-            )
-
-
-# ---------------- PREDICTION HISTORY PAGE ----------------
-
-elif page == "Prediction History":
+# ---------------- FOOTER ----------------
+st.divider()
+st.caption("Built with ❤️ using Python, Scikit-learn & Streamlit")
 
          
 # ---------------- FOOTER ----------------
