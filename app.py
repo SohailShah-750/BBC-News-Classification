@@ -296,12 +296,10 @@ elif page == "Prediction History":
     else:
         st.info("No prediction history available yet. Analyze a news article first.")
 
-   
+
+
 
 # ---------------- CSV UPLOAD PAGE ----------------
-
-
-
 
 elif page == "CSV Upload":
 
@@ -318,7 +316,7 @@ elif page == "CSV Upload":
         try:
             df = pd.read_csv(uploaded_file)
 
-            # Support BBC dataset and custom dataset
+            # Support BBC and custom CSV formats
 
             if "text" in df.columns:
 
@@ -333,7 +331,7 @@ elif page == "CSV Upload":
 
             else:
                 st.error(
-                    "CSV must contain 'text' OR both 'title' and 'content' columns."
+                    "CSV must contain 'text' OR both 'title' and 'content'."
                 )
                 st.stop()
 
@@ -348,56 +346,50 @@ elif page == "CSV Upload":
 
             if st.button("🚀 Classify All News"):
 
+                # Text Vectorization
                 text_vector = vectorizer.transform(df["text"])
 
+                # Predictions
                 predictions = model.predict(text_vector)
 
                 probabilities = model.predict_proba(text_vector)
 
                 df["Predicted Category"] = predictions
 
-                
-
-                    df["Predicted Category"] = predictions
-
-                    df["Confidence"] = (
-                        probabilities.max(axis=1) * 100
-                    ).round(2)
-
-                    # Calculate Model Accuracy
-                    if "category" in df.columns:
-
-                        actual = (
-                            df["category"]
-                            .astype(str)
-                            .str.strip()
-                            .str.lower()
-                        )
-
-                        predicted = (
-                            pd.Series(predictions)
-                            .astype(str)
-                            .str.strip()
-                            .str.lower()
-                        )
-
-                        accuracy = (actual == predicted).mean() * 100
-
-                        st.metric(
-                            "🎯 Model Accuracy",
-                            f"{accuracy:.2f}%"
-                        )
-
-
-
+                # Confidence Score
                 df["Confidence"] = (
                     probabilities.max(axis=1) * 100
                 ).round(2)
+
+                # Actual Accuracy
+                if "category" in df.columns:
+
+                    actual = (
+                        df["category"]
+                        .astype(str)
+                        .str.strip()
+                        .str.lower()
+                    )
+
+                    predicted = (
+                        pd.Series(predictions)
+                        .astype(str)
+                        .str.strip()
+                        .str.lower()
+                    )
+
+                    accuracy = (actual == predicted).mean() * 100
+
+                    st.metric(
+                        "🎯 Model Accuracy",
+                        f"{accuracy:.2f}%"
+                    )
 
                 st.success(
                     "All news articles classified successfully!"
                 )
 
+                # Classification Results
                 st.subheader("📊 Classification Results")
 
                 st.dataframe(
@@ -405,8 +397,7 @@ elif page == "CSV Upload":
                     use_container_width=True
                 )
 
-                # Show prediction probabilities
-
+                # Category Probabilities
                 st.subheader("📈 Category Probabilities")
 
                 probability_df = pd.DataFrame(
@@ -419,8 +410,7 @@ elif page == "CSV Upload":
                     use_container_width=True
                 )
 
-                # Download results
-
+                # Download CSV
                 csv = df.to_csv(index=False).encode("utf-8")
 
                 st.download_button(
