@@ -226,23 +226,14 @@ if st.button("🚀 Analyze News"):
         st.warning("Please enter a news article first.")
                
 
+        
                 # Calculate Accuracy
 
                 if "category" in df.columns:
 
-                    actual = (
-                        df["category"]
-                        .astype(str)
-                        .str.strip()
-                        .str.lower()
-                    )
+                    actual = df["category"].astype(str).str.strip().str.lower()
 
-                    predicted = (
-                        pd.Series(predictions)
-                        .astype(str)
-                        .str.strip()
-                        .str.lower()
-                    )
+                    predicted = pd.Series(predictions).astype(str).str.strip().str.lower()
 
                     accuracy = (actual == predicted).mean() * 100
 
