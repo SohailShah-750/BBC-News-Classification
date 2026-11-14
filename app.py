@@ -116,46 +116,44 @@ if page == "Overview":
 
 # ---------------- AI NEWS CLASSIFIER PAGE ----------------
 
+
+# ---------------- AI NEWS CLASSIFIER ----------------
+
 elif page == "AI News Classifier":
 
-    st.title("🧠 AI News Classifier")
-    st.markdown("Analyze any news article using our trained AI model.")
+    st.title("📰 AI News Classifier")
 
-    st.divider()
+    st.write("Enter a news article to predict its category.")
 
-    st.subheader("📝 News Article Input")
-
+    # News Input
     news_text = st.text_area(
-        "Paste your news article",
+        "Paste your news article here:",
         height=250,
-        placeholder="Paste the complete news article here..."
+        placeholder="Enter or paste your news article..."
     )
 
-    if st.button("🚀 Analyze News", use_container_width=True):
+    # Prediction
+    if st.button("🚀 Analyze News"):
 
         if news_text.strip():
 
             try:
+                # Vectorization
                 text_vector = vectorizer.transform([news_text])
 
+                # Prediction
                 prediction = model.predict(text_vector)[0]
 
+                # Probabilities
                 probabilities = model.predict_proba(text_vector)[0]
-                confidence = max(probabilities) * 100
 
-                st.success("News Analysis Completed!")
+                # Display Prediction
+                st.success(f"Predicted Category: {prediction}")
 
-                col1, col2 = st.columns(2)
-
-                with col1:
-                    st.metric("Predicted Category", prediction)
-
-                with col2:
-                    st.metric("Confidence Score", f"{confidence:.2f}%")
-
+                # Probability DataFrame
                 probability_df = pd.DataFrame({
                     "Category": model.classes_,
-                    "Probability": probabilities * 100
+                    "Probability": (probabilities * 100).round(2)
                 })
 
                 probability_df = probability_df.sort_values(
@@ -163,7 +161,12 @@ elif page == "AI News Classifier":
                     ascending=False
                 )
 
-                st.subheader("📊 Category Probability Analysis")
+                st.subheader("📊 Category Probabilities")
+
+                st.dataframe(
+                    probability_df,
+                    use_container_width=True
+                )
 
                 st.bar_chart(
                     probability_df.set_index("Category")
@@ -174,7 +177,6 @@ elif page == "AI News Classifier":
 
         else:
             st.warning("Please enter a news article first.")
-
 
 # ---------------- DASHBOARD ----------------
 col1, col2 = st.columns(2)
