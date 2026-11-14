@@ -301,10 +301,16 @@ elif page == "Prediction History":
 
 # ---------------- CSV UPLOAD PAGE ----------------
 
+
+# ---------------- CSV UPLOAD PAGE ----------------
+
 elif page == "CSV Upload":
 
     st.title("📂 Bulk News Classification")
-    st.write("Upload a CSV file to classify multiple news articles.")
+
+    st.write(
+        "Upload a CSV file to classify multiple news articles."
+    )
 
     uploaded_file = st.file_uploader(
         "Upload CSV File",
@@ -314,27 +320,33 @@ elif page == "CSV Upload":
     if uploaded_file is not None:
 
         try:
+            # Read CSV File
             df = pd.read_csv(uploaded_file)
 
-            # Support BBC and custom CSV formats
-
+            # Check CSV columns
             if "text" in df.columns:
 
-                df["text"] = df["text"].fillna("").astype(str)
+                df["text"] = (
+                    df["text"]
+                    .fillna("")
+                    .astype(str)
+                )
 
             elif "title" in df.columns and "content" in df.columns:
 
                 df["text"] = (
-                    df["title"].fillna("").astype(str) + " " +
-                    df["content"].fillna("").astype(str)
+                    df["title"].fillna("").astype(str)
+                    + " "
+                    + df["content"].fillna("").astype(str)
                 )
 
             else:
                 st.error(
-                    "CSV must contain 'text' OR both 'title' and 'content'."
+                    "CSV must contain 'text' OR both 'title' and 'content' columns."
                 )
                 st.stop()
 
+            # Uploaded Data
             st.subheader("📋 Uploaded Data")
 
             st.dataframe(
@@ -342,18 +354,33 @@ elif page == "CSV Upload":
                 use_container_width=True
             )
 
-            st.metric("Total News Articles", len(df))
+            st.metric(
+                "Total News Articles",
+                len(df)
+            )
 
-            if st.button("🚀 Classify All News"):
+            # Classify All News
+            if st.button(
+                "🚀 Classify All News",
+                use_container_width=True
+            ):
 
-                # Text Vectorization
-                text_vector = vectorizer.transform(df["text"])
+                # Vectorization
+                text_vector = vectorizer.transform(
+                    df["text"]
+                )
 
                 # Predictions
-                predictions = model.predict(text_vector)
+                predictions = model.predict(
+                    text_vector
+                )
 
-                probabilities = model.predict_proba(text_vector)
+                # Probabilities
+                probabilities = model.predict_proba(
+                    text_vector
+                )
 
+                # Add Predictions
                 df["Predicted Category"] = predictions
 
                 # Confidence Score
@@ -361,7 +388,7 @@ elif page == "CSV Upload":
                     probabilities.max(axis=1) * 100
                 ).round(2)
 
-                # Actual Accuracy
+                # Accuracy if actual category exists
                 if "category" in df.columns:
 
                     actual = (
@@ -378,18 +405,21 @@ elif page == "CSV Upload":
                         .str.lower()
                     )
 
-                    accuracy = (actual == predicted).mean() * 100
+                    accuracy = (
+                        actual == predicted
+                    ).mean() * 100
 
                     st.metric(
                         "🎯 Model Accuracy",
                         f"{accuracy:.2f}%"
                     )
 
+                # Success Message
                 st.success(
                     "All news articles classified successfully!"
                 )
 
-                # Classification Results
+                # Results
                 st.subheader("📊 Classification Results")
 
                 st.dataframe(
@@ -397,7 +427,7 @@ elif page == "CSV Upload":
                     use_container_width=True
                 )
 
-                # Category Probabilities
+                # Probability Table
                 st.subheader("📈 Category Probabilities")
 
                 probability_df = pd.DataFrame(
@@ -410,8 +440,10 @@ elif page == "CSV Upload":
                     use_container_width=True
                 )
 
-                # Download CSV
-                csv = df.to_csv(index=False).encode("utf-8")
+                # Download Results
+                csv = df.to_csv(
+                    index=False
+                ).encode("utf-8")
 
                 st.download_button(
                     label="📥 Download Classified CSV",
@@ -421,7 +453,15 @@ elif page == "CSV Upload":
                 )
 
         except Exception as e:
-            st.error(f"CSV Processing Error: {e}")
+
+            st.error(
+                f"CSV Processing Error: {e}"
+            )
+
+
+# ---------------- PREDICTION HISTORY PAGE ----------------
+
+elif page == "Prediction History":
 
          
 # ---------------- FOOTER ----------------
