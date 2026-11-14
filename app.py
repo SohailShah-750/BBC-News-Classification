@@ -197,34 +197,45 @@ news_text = st.text_area(
 )
 
 # ---------------- PREDICTION ----------------
-if st.button("🚀 Analyze News", use_container_width=True):
 
-    if news_text.strip():
+            if st.button("🚀 Classify All News"):
 
-        try:
-            text_vector = vectorizer.transform([news_text])
+                text_vector = vectorizer.transform(df["text"])
 
-            prediction = model.predict(text_vector)[0]
+                predictions = model.predict(text_vector)
 
-            probabilities = model.predict_proba(text_vector)[0]
-            confidence = max(probabilities) * 100
+                probabilities = model.predict_proba(text_vector)
 
-            st.session_state.prediction_history.append({
-    "Date & Time": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-    "News": news_text[:100],
-    "Category": prediction,
-    "Confidence": round(confidence, 2)
-})
+                df["Predicted Category"] = predictions
 
-            st.success("News Analysis Completed!")
+                df["Confidence"] = (
+                    probabilities.max(axis=1) * 100
+                ).round(2)
 
-            st.subheader("🎯 Prediction Result")
-            st.title(f"📌 {prediction}")
+                # Calculate Accuracy
 
-            st.metric(
-                "Prediction Confidence",
-                f"{confidence:.2f}%"
-            )
+                if "category" in df.columns:
+
+                    actual = (
+                        df["category"]
+                        .astype(str)
+                        .str.strip()
+                        .str.lower()
+                    )
+
+                    predicted = (
+                        pd.Series(predictions)
+                        .astype(str)
+                        .str.strip()
+                        .str.lower()
+                    )
+
+                    accuracy = (actual == predicted).mean() * 100
+
+                    st.metric(
+                        "🎯 Model Accuracy",
+                        f"{accuracy:.2f}%"
+                    )
 
             # Probability chart
             categories = model.classes_
