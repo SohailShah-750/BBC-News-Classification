@@ -228,7 +228,7 @@ if st.button("🚀 Analyze News"):
 
         
               # Calculate Accuracy
-if "category" in df.columns
+  if "category" in df.columns
 
                     actual = df["category"].astype(str).str.strip().str.lower()
 
