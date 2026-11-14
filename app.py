@@ -224,22 +224,36 @@ if st.button("🚀 Analyze News"):
         st.warning("Please enter a news article first.")
                
 
-                        # Calculate Accuracy
+                       # Calculate Accuracy
+            if "category" in df.columns:
 
-                if "category" in df.columns:
-                    actual = df["category"].astype(str).str.strip().str.lower()
-                    predicted = pd.Series(predictions).astype(str).str.strip().str.lower()
+                actual = (
+                    df["category"]
+                    .astype(str)
+                    .str.strip()
+                    .str.lower()
+                )
 
-                    accuracy = (actual == predicted).mean() * 100
+                predicted = (
+                    pd.Series(predictions)
+                    .astype(str)
+                    .str.strip()
+                    .str.lower()
+                )
 
-                    st.metric("🎯 Model Accuracy", f"{accuracy:.2f}%")
+                accuracy = (actual == predicted).mean() * 100
 
-            # Probability chart
+                st.metric(
+                    "🎯 Model Accuracy",
+                    f"{accuracy:.2f}%"
+                )
+
+            # Probability Chart
             categories = model.classes_
 
             probability_df = pd.DataFrame({
                 "Category": categories,
-                "Probability": probabilities * 100
+                "Probability": probabilities[0] * 100
             })
 
             probability_df = probability_df.sort_values(
@@ -258,7 +272,6 @@ if st.button("🚀 Analyze News"):
 
     else:
         st.warning("Please enter a news article first.")
-
 # -------------- PREDICTION HISTORY PAGE ----------------
 
 elif page == "Prediction History":
@@ -295,8 +308,6 @@ elif page == "Prediction History":
 
 
 
-
-# ---------------- CSV UPLOAD PAGE ----------------
 
 
 # ---------------- CSV UPLOAD PAGE ----------------
