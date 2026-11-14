@@ -188,6 +188,7 @@ with col2:
 st.divider()
 
 # ---------------- NEWS INPUT ----------------
+
 st.subheader("📄 Enter News Article")
 
 news_text = st.text_area(
@@ -198,20 +199,29 @@ news_text = st.text_area(
 
 # ---------------- PREDICTION ----------------
 
-            if st.button("🚀 Classify All News"):
+if st.button("🚀 Analyze News"):
 
-                text_vector = vectorizer.transform(df["text"])
+    if news_text.strip():
 
-                predictions = model.predict(text_vector)
+        text_vector = vectorizer.transform([news_text])
 
-                probabilities = model.predict_proba(text_vector)
+        prediction = model.predict(text_vector)[0]
 
-                df["Predicted Category"] = predictions
+        probabilities = model.predict_proba(text_vector)[0]
 
-                df["Confidence"] = (
-                    probabilities.max(axis=1) * 100
-                ).round(2)
+        st.success(f"Predicted Category: {prediction}")
 
+        st.write("Category Probabilities:")
+
+        probability_df = pd.DataFrame({
+            "Category": model.classes_,
+            "Probability": probabilities
+        })
+
+        st.dataframe(probability_df)
+
+    else:
+        st.warning("Please enter a news article first.")
                 # Calculate Accuracy
 
                 if "category" in df.columns:
